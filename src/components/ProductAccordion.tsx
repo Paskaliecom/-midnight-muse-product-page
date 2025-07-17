@@ -61,7 +61,7 @@ export default function ProductAccordion({ product }: ProductAccordionProps) {
           </div>
           <div>
             <h5 className="font-semibold mb-2">RETURNS</h5>
-            <p>If you don't like the product, you can return it within 30 days. We have an easy and hassle-free returns policy. See our Delivery and Returns Policy for more information</p>
+            <p>If you don&apos;t like the product, you can return it within 30 days. We have an easy and hassle-free returns policy. See our Delivery and Returns Policy for more information</p>
           </div>
         </div>
       )

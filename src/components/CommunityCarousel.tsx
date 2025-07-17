@@ -34,7 +34,7 @@ export default function CommunityCarousel() {
     }, 3000); // Move a cada 3 segundos
 
     return () => clearInterval(interval);
-  }, []);
+  }, [communityImages.length]);
 
   return (
     <div className="py-12 bg-gray-50">

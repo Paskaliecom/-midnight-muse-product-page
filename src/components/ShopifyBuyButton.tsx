@@ -9,9 +9,9 @@ export default function ShopifyBuyButton() {
       script.async = true;
       script.src = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
       script.onload = () => {
-        // @ts-ignore
+        // @ts-expect-error
         if (window.ShopifyBuy) {
-          // @ts-ignore
+          // @ts-expect-error
           if (window.ShopifyBuy.UI) {
             ShopifyBuyInit();
           } else {
@@ -25,12 +25,12 @@ export default function ShopifyBuyButton() {
           ShopifyBuyInit();
         }
         function ShopifyBuyInit() {
-          // @ts-ignore
+          // @ts-expect-error
           const client = window.ShopifyBuy.buildClient({
             domain: '11kw1j-7a.myshopify.com',
             storefrontAccessToken: '13824e38ac18c667ed467a29e6df949a',
           });
-          // @ts-ignore
+          // @ts-expect-error
           window.ShopifyBuy.UI.onReady(client).then(function (ui) {
             ui.createComponent('product', {
               id: '8108616876219',
@@ -156,9 +156,9 @@ export default function ShopifyBuyButton() {
       document.body.appendChild(script);
     } else {
       // Se já existe, só inicializa
-      // @ts-ignore
+      // @ts-expect-error
       if (window.ShopifyBuy && window.ShopifyBuy.UI) {
-        // @ts-ignore
+        // @ts-expect-error
         ShopifyBuyInit();
       }
     }

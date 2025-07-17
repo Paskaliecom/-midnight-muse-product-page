@@ -37,22 +37,22 @@ export default function UTMManager() {
           const iframeWindow = iframe.contentWindow;
           if (!iframeWindow) return;
 
-          // @ts-ignore
+          // @ts-expect-error
           const cartData = iframeWindow.ShopifyBuy.UI.components.cart[0].model.lineItems;
 
           // Cria checkout com os mesmos itens do carrinho
-          const lineItems = cartData.map((item: any) => ({
+          const lineItems = cartData.map((item: Record<string, any>) => ({
             variantId: item.variant.id,
             quantity: item.quantity,
           }));
 
-          // @ts-ignore
+          // @ts-expect-error
           const client = window.ShopifyBuy.buildClient({
             domain: '11kw1j-7a.myshopify.com',
             storefrontAccessToken: '13824e38ac18c667ed467a29e6df949a',
           });
 
-          client.checkout.create({ lineItems }).then((checkout: any) => {
+          client.checkout.create({ lineItems }).then((checkout: Record<string, any>) => {
             const suffix = checkout.webUrl.includes('?') ? '&' : '?';
             const checkoutUrl = checkout.webUrl + suffix + serialize(utmParams);
             window.location.href = checkoutUrl;
