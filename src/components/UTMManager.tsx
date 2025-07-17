@@ -37,22 +37,22 @@ export default function UTMManager() {
           const iframeWindow = iframe.contentWindow;
           if (!iframeWindow) return;
 
-          // @ts-expect-error
+          // @ts-expect-error - ShopifyBuy.UI.components is a global variable from external script
           const cartData = iframeWindow.ShopifyBuy.UI.components.cart[0].model.lineItems;
 
           // Cria checkout com os mesmos itens do carrinho
-          const lineItems = cartData.map((item: Record<string, any>) => ({
+          const lineItems = cartData.map((item: { variant: { id: string }; quantity: number }) => ({
             variantId: item.variant.id,
             quantity: item.quantity,
           }));
 
-          // @ts-expect-error
+          // @ts-expect-error - ShopifyBuy.buildClient is a global function from external script
           const client = window.ShopifyBuy.buildClient({
             domain: '11kw1j-7a.myshopify.com',
             storefrontAccessToken: '13824e38ac18c667ed467a29e6df949a',
           });
 
-          client.checkout.create({ lineItems }).then((checkout: Record<string, any>) => {
+          client.checkout.create({ lineItems }).then((checkout: { webUrl: string }) => {
             const suffix = checkout.webUrl.includes('?') ? '&' : '?';
             const checkoutUrl = checkout.webUrl + suffix + serialize(utmParams);
             window.location.href = checkoutUrl;
