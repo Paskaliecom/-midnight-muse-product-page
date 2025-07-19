@@ -1,9 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function LifestyleVideos() {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const videos = [
     'https://cdn.shopify.com/videos/c/o/v/4bd4335db56449ca930a6ce86f51c270.mp4',
@@ -32,15 +37,17 @@ export default function LifestyleVideos() {
             className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden cursor-pointer group"
             onClick={() => openVideoModal(video)}
           >
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="w-full h-full object-cover"
-            >
-              <source src={video} type="video/mp4" />
-            </video>
+            {isClient && (
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover"
+              >
+                <source src={video} type="video/mp4" />
+              </video>
+            )}
             
             {/* Overlay com ícone de play */}
             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
@@ -56,7 +63,7 @@ export default function LifestyleVideos() {
       </div>
 
       {/* Modal de Vídeo Fullscreen */}
-      {selectedVideo && (
+      {selectedVideo && isClient && (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <div className="relative w-full max-w-4xl">
             <button

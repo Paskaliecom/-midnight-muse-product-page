@@ -20,48 +20,88 @@ export default function UTMManager() {
     }
 
     const utmParams = getUTMParams();
+    
+    // Se não há UTMs, não faz nada
+    if (Object.keys(utmParams).length === 0) {
+      return;
+    }
 
-    // Espera o carrinho carregar (Buy Button)
-    const observer = new MutationObserver(() => {
-      const checkoutBtn = document.querySelector('button.shopify-buy__cart__checkout');
+    console.log('UTMs detectadas:', utmParams);
 
-      if (checkoutBtn && !(checkoutBtn as HTMLElement).dataset.utmAttached) {
-        (checkoutBtn as HTMLElement).dataset.utmAttached = 'true';
+    // Função para criar checkout customizado
+    async function createCustomCheckout() {
+      try {
+        console.log('Criando checkout customizado com UTMs...');
+        
+        // Dados do produto (você pode ajustar conforme necessário)
+        const productData = {
+          variantId: 'gid://shopify/ProductVariant/43778592493771',
+          quantity: 1
+        };
 
-        checkoutBtn.addEventListener('click', function (e: Event) {
-          e.preventDefault(); // impede o comportamento padrão
-          
-          const iframe = document.querySelector('iframe');
-          if (!iframe) return;
-          
-          const iframeWindow = iframe.contentWindow;
-          if (!iframeWindow) return;
-
-          // @ts-expect-error - ShopifyBuy.UI.components is a global variable from external script
-          const cartData = iframeWindow.ShopifyBuy.UI.components.cart[0].model.lineItems;
-
-          // Cria checkout com os mesmos itens do carrinho
-          const lineItems = cartData.map((item: { variant: { id: string }; quantity: number }) => ({
-            variantId: item.variant.id,
-            quantity: item.quantity,
-          }));
-
-          // @ts-expect-error - ShopifyBuy.buildClient is a global function from external script
-          const client = window.ShopifyBuy.buildClient({
-            domain: '11kw1j-7a.myshopify.com',
-            storefrontAccessToken: '13824e38ac18c667ed467a29e6df949a',
-          });
-
-          client.checkout.create({ lineItems }).then((checkout: { webUrl: string }) => {
-            const suffix = checkout.webUrl.includes('?') ? '&' : '?';
-            const checkoutUrl = checkout.webUrl + suffix + serialize(utmParams);
-            window.location.href = checkoutUrl;
-          });
+        // Cria o checkout via API do Shopify
+        const response = await fetch('/api/create-checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            lineItems: [productData],
+            utmParams
+          }),
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Adiciona UTMs à URL do checkout
+        const separator = data.checkoutUrl.includes('?') ? '&' : '?';
+        const checkoutUrlWithUTMs = data.checkoutUrl + separator + serialize(utmParams);
+        
+        console.log('Abrindo checkout com UTMs:', checkoutUrlWithUTMs);
+        window.open(checkoutUrlWithUTMs, '_blank');
+        
+      } catch (error) {
+        console.error('Erro ao criar checkout customizado:', error);
+        // Fallback: redireciona para o carrinho
+        window.open('https://11kw1j-7a.myshopify.com/cart', '_blank');
       }
+    }
+
+    // Intercepta cliques no Buy Button
+    function interceptBuyButton() {
+      // Procura por botões de checkout do Buy Button
+      const buyButtons = document.querySelectorAll('[data-shopify="payment-button"], .shopify-buy__cart__checkout, button[data-testid="checkout-button"]');
+      
+      buyButtons.forEach((button) => {
+        if (!(button as HTMLElement).dataset.utmIntercepted) {
+          (button as HTMLElement).dataset.utmIntercepted = 'true';
+          
+          button.addEventListener('click', function(e: Event) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Clique no Buy Button interceptado!');
+            createCustomCheckout();
+          }, true);
+        }
+      });
+    }
+
+    // Observa mudanças no DOM para capturar o Buy Button quando ele carregar
+    const observer = new MutationObserver(() => {
+      interceptBuyButton();
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true 
+    });
+
+    // Executa imediatamente também
+    interceptBuyButton();
 
     // Cleanup
     return () => {
@@ -69,5 +109,5 @@ export default function UTMManager() {
     };
   }, []);
 
-  return null; // Este componente não renderiza nada visualmente
+  return null;
 } 
